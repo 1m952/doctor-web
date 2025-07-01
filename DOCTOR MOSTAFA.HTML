@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR MOSTAFA MOHAMMED</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light grey background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Deeper shadow */
+            padding: 2rem;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.75rem; /* Larger title */
+            font-weight: 700; /* Bold */
+            color: #1a202c; /* Dark text */
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #edf2f7; /* Subtle underline */
+            padding-bottom: 0.5rem;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* Gradient background */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded button */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .info-card {
+            background-color: #f8fafc; /* Lighter background for cards */
+            border-left: 4px solid #6366f1; /* Left border accent */
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .info-card p {
+            margin-bottom: 0.5rem;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+            display: none; /* Hidden by default */
+        }
+
+        /* Map container style */
+        .map-container {
+            width: 100%;
+            height: 220px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-top: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.08);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .results-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+            .map-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-4">
+            Smart Medical Web Assistant 🩺
+        </h1>
+        <p class="text-center text-gray-600 mb-6">
+            Describe how you're feeling, and I'll try to provide a preliminary analysis and suggest next steps.
+            <span class="font-bold text-red-600">Disclaimer: This is a simulation and not a substitute for professional medical advice.</span>
+        </p>
+
+        <!-- Symptom Input Section -->
+        <div class="input-section">
+            <label for="symptomsInput" class="block text-lg font-semibold text-gray-700 mb-2">
+                How do you feel? (e.g., "I feel dizzy and I’ve been coughing for two days")
+            </label>
+            <textarea
+                id="symptomsInput"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-shadow"
+                placeholder="Describe your symptoms here..."
+            ></textarea>
+            <button
+                id="analyzeSymptomsBtn"
+                class="btn-primary w-full mt-4 text-lg"
+            >
+                Analyze Symptoms
+            </button>
+            <div id="loadingSpinner" class="loading-spinner mt-4"></div>
+        </div>
+
+        <!-- Analysis Results Section -->
+        <div id="resultsSection" class="hidden">
+            <h2 class="section-title">Analysis Results</h2>
+
+            <!-- Diagnosis Card -->
+            <div class="info-card bg-indigo-50 border-indigo-600">
+                <p class="font-bold text-indigo-800 text-xl mb-2">Possible Diagnosis:</p>
+                <p id="diagnosisOutput" class="text-indigo-700 text-lg"></p>
+            </div>
+
+            <div class="results-grid mt-4">
+                <!-- Medical Details Card -->
+                <div class="info-card">
+                    <p class="font-bold text-gray-800 mb-2">Medical Details:</p>
+                    <p><span class="font-semibold">Symptoms:</span> <span id="symptomsDetails"></span></p>
+                    <p><span class="font-semibold">Causes:</span> <span id="causesDetails"></span></p>
+                    <p><span class="font-semibold">Risk Level:</span> <span id="riskLevelDetails"></span></p>
+                    <p><span class="font-semibold">Recommended Treatment:</span> <span id="treatmentDetails"></span></p>
+                    <p><span class="font-semibold">Urgency:</span> <span id="urgencyDetails"></span></p>
+                    <p><span class="font-semibold">Medicine Suggestions:</span> <span id="medicineSuggestions"></span></p>
+                    <p><span class="font-semibold">Doctor Needed:</span> <span id="doctorNeeded"></span></p>
+                </div>
+
+                <!-- Location Recommendations Card -->
+                <div class="info-card bg-green-50 border-green-600">
+                    <p class="font-bold text-green-800 mb-2">Nearest Help:</p>
+                    <p><span class="font-semibold">Hospital:</span> <span id="hospitalSuggestion"></span></p>
+                    <p><span class="font-semibold">Pharmacy:</span> <span id="pharmacySuggestion"></span></p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        (Simulated locations. For real-time directions, use a maps application.)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Get references to HTML elements
+        const symptomsInput = document.getElementById('symptomsInput');
+        const analyzeSymptomsBtn = document.getElementById('analyzeSymptomsBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        const diagnosisOutput = document.getElementById('diagnosisOutput');
+        const symptomsDetails = document.getElementById('symptomsDetails');
+        const causesDetails = document.getElementById('causesDetails');
+        const riskLevelDetails = document.getElementById('riskLevelDetails');
+        const treatmentDetails = document.getElementById('treatmentDetails');
+        const urgencyDetails = document.getElementById('urgencyDetails');
+        const medicineSuggestions = document.getElementById('medicineSuggestions');
+        const doctorNeeded = document.getElementById('doctorNeeded');
+        const hospitalSuggestion = document.getElementById('hospitalSuggestion');
+        const pharmacySuggestion = document.getElementById('pharmacySuggestion');
+
+        // Event listener for the analyze button
+        analyzeSymptomsBtn.addEventListener('click', async () => {
+            const symptoms = symptomsInput.value.trim();
+
+            if (!symptoms) {
+                alertUser("Please enter your symptoms before analyzing.");
+                return;
+            }
+
+            // Show loading spinner and hide results
+            loadingSpinner.style.display = 'block';
+            resultsSection.classList.add('hidden');
+            analyzeSymptomsBtn.disabled = true; // Disable button during processing
+
+            try {
+                // Construct the prompt for the Gemini API
+                const prompt = `
+                    Analyze the following symptoms and provide a likely diagnosis,
+                    detailed medical information about that diagnosis, and
+                    simulated nearest hospital and pharmacy recommendations.
+                    Respond ONLY with a JSON object structured as follows:
+
+                    {
+                        "diagnosis": "string",
+                        "details": {
+                            "symptoms": "string (comma separated)",
+                            "causes": "string",
+                            "riskLevel": "string (e.g., Low, Medium, High, Emergency)",
+                            "treatment": "string",
+                            "urgency": "string (e.g., Consult doctor soon, Urgent care, Emergency)",
+                            "medicineSuggestions": "string (comma separated, e.g., Paracetamol, Ibuprofen)",
+                            "doctorNeeded": "string (e.g., General Practitioner, Specialist)"
+                        },
+                        "hospitalSuggestion": "string (fictional name and address)",
+                        "pharmacySuggestion": "string (fictional name and address)"
+                    }
+
+                    Symptoms: "${symptoms}"
+                `;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json", // Ensure JSON response
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "diagnosis": { "type": "STRING" },
+                                "details": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "symptoms": { "type": "STRING" },
+                                        "causes": { "type": "STRING" },
+                                        "riskLevel": { "type": "STRING" },
+                                        "treatment": { "type": "STRING" },
+                                        "urgency": { "type": "STRING" },
+                                        "medicineSuggestions": { "type": "STRING" },
+                                        "doctorNeeded": { "type": "STRING" }
+                                    },
+                                    "required": ["symptoms", "causes", "riskLevel", "treatment", "urgency", "medicineSuggestions", "doctorNeeded"]
+                                },
+                                "hospitalSuggestion": { "type": "STRING" },
+                                "pharmacySuggestion": { "type": "STRING" }
+                            },
+                            "required": ["diagnosis", "details", "hospitalSuggestion", "pharmacySuggestion"]
+                        }
+                    }
+                };
+
+                const apiKey = "AIzaSyB_RcQIyYMaCDQdJC639n0jhhYMMnHofjE"; // Canvas will provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorBody}`);
+                }
+
+                const result = await response.json();
+                console.log("Gemini API Response:", result); // Log the full response for debugging
+
+                let parsedData;
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    parsedData = JSON.parse(jsonString);
+                } else {
+                    throw new Error("Invalid response format from API.");
+                }
+
+                // Populate the UI with the parsed data
+                diagnosisOutput.textContent = parsedData.diagnosis || 'N/A';
+                symptomsDetails.textContent = parsedData.details.symptoms || 'N/A';
+                causesDetails.textContent = parsedData.details.causes || 'N/A';
+                riskLevelDetails.textContent = parsedData.details.riskLevel || 'N/A';
+                treatmentDetails.textContent = parsedData.details.treatment || 'N/A';
+                urgencyDetails.textContent = parsedData.details.urgency || 'N/A';
+                medicineSuggestions.textContent = parsedData.details.medicineSuggestions || 'N/A';
+                doctorNeeded.textContent = parsedData.details.doctorNeeded || 'N/A';
+                hospitalSuggestion.textContent = parsedData.hospitalSuggestion || 'N/A';
+                pharmacySuggestion.textContent = parsedData.pharmacySuggestion || 'N/A';
+
+                // Show results section
+                resultsSection.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error analyzing symptoms:', error);
+                alertUser(`An error occurred: ${error.message}. Please try again.`);
+                // Optionally display a more user-friendly error message in the UI
+            } finally {
+                // Hide loading spinner and enable button
+                loadingSpinner.style.display = 'none';
+                analyzeSymptomsBtn.disabled = false;
+            }
+        });
+
+        // Custom alert function
+        function alertUser(message) {
+            // This is a simple modal implementation instead of `alert()`
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50';
+            modalDiv.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <button id="closeAlert" class="btn-primary px-4 py-2">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+
+            document.getElementById('closeAlert').addEventListener('click', () => {
+                modalDiv.remove();
+            });
+        }
+    </script>
+</body>
+</html>
